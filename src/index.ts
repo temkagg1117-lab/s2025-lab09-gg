@@ -51,18 +51,45 @@ function main (fileNames: string[]): void {
     });
 }
 
-// Implement the async version of the above here
-// Your version should not use .then and should use try/catch instead of .catch
+// Async/await хувилбар
 async function mainAsync(fileNames: string[]): Promise<void> {
-    // Your code here
+    for (const fileName of fileNames) {
+        try {
+            console.log(`Running logo detection on ${fileName}`);
+
+            // SDK call-ийг await ашиглаж дуудаж байна
+            const [result] = await client.logoDetection(fileName);
+
+            let scores: number[] = [];
+            const logos = result.logoAnnotations;
+
+            logos?.forEach((logo) => {
+                if (logo.description)
+                    console.log(`"${logo.description}" found in in file ${fileName}`);
+                if (logo.score)
+                    scores.push(logo.score);
+            });
+
+            const avg = scores.reduce((a, b) => a + b) / scores.length;
+            console.log(`Average score for ${fileName}: ${avg}`);
+
+        } catch (err: any) {
+            if (err.code === 'ENOENT')
+                console.log(`File ${fileName} not found`);
+            else
+                console.error(`Error detecting logo in ${fileName}:`, err.message);
+        }
+    }
 }
 
+// Original Promise хувилбар
 main([
     './images/cmu.jpg', 
     './images/logo-types-collection.jpg', 
     './images/not-a-file.jpg'
 ]);
 
+// Async/await хувилбар
 mainAsync([
     './images/cmu.jpg', 
     './images/logo-types-collection.jpg', 
